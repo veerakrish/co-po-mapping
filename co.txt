@@ -1,0 +1,6 @@
+CO1: Solve boiler troubles originated due to poor water quality and suggest suitable water treatment methods.
+(K3)
+CO2: Choose plastics and rubbers for engineering applications. (K3)
+CO3: Associate concepts of Electro Chemistry in designing electrochemical energy systems. (K2)
+CO4: Assess the quality of fuels. (K3)
+CO5: Apply corrosion principles for protection of metallic structures. (K3)

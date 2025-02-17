@@ -1,0 +1,124 @@
+Step 1: Install and Configure Apache CloudStack
+Since you're setting up a private cloud, follow these steps:
+
+1.1 Install CloudStack Management Server
+Choose a dedicated machine as your CloudStack Management Server.
+Install CloudStack Management Server on Ubuntu 20.04 (recommended) or CentOS.
+Install MySQL database and configure CloudStack to use it.
+sudo apt update && sudo apt upgrade -y
+sudo apt install cloudstack-management cloudstack-agent -y
+Configure MySQL and run the CloudStack database setup:
+cloudstack-setup-databases cloud:password@localhost --deploy-as=root
+Start the CloudStack Management Service:
+systemctl start cloudstack-management
+systemctl enable cloudstack-management
+1.2 Install and Configure a Hypervisor (KVM)
+Install KVM (Kernel-based Virtual Machine) on a separate server that will host VMs.
+sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils -y
+Enable and start the libvirt service:
+systemctl enable libvirtd
+systemctl start libvirtd
+Add CloudStack agent:
+sudo apt install cloudstack-agent -y
+Restart the agent:
+systemctl restart cloudstack-agent
+1.3 Configure Networking
+Ensure that your CloudStack server and hypervisor are connected to the same WiFi network.
+Set up a static IP for the CloudStack Management Server.
+Make sure the hypervisor and all student devices can reach the CloudStack server.
+Step 2: Create a VM Template for Students
+Since each student will have their own VM, create a template to speed up deployments.
+
+2.1 Install MATLAB (or Other Software) on a Base VM
+Create a new VM in CloudStack.
+Install MATLAB, Python, or any required applications.
+Optimize the system (remove unnecessary files, configure firewall, etc.).
+2.2 Convert the VM into a Template
+Shut down the VM.
+Go to CloudStack Dashboard > Templates > Create Template.
+Select the VM Disk Image and register it as a template.
+Now, you can use this template to create multiple student VMs dynamically.
+
+Step 3: Set Up Auto-Scaling in CloudStack
+Now, we configure CloudStack Auto-Scaling so that VMs are created only when needed.
+
+3.1 Install and Configure CloudStack Auto-Scaling
+Install HAProxy as a load balancer (optional, but recommended):
+sudo apt install haproxy -y
+Enable CloudStack AutoScale service:
+cloudstack-setup-autoscale
+3.2 Create an Auto-Scale Policy
+Go to CloudStack Dashboard > AutoScale Policies.
+Click Create AutoScale Policy.
+Set conditions:
+Scale Up when CPU usage > 70%.
+Scale Down when CPU usage < 30%.
+Select the template created earlier.
+Set minimum (1 VM) and maximum (X VMs, based on students).
+Now, CloudStack will automatically create VMs as more students join.
+
+Step 4: Automate VM Creation Based on WiFi Connections
+Since you want VMs to be created based on the number of students connected to WiFi, you can use a Python script to detect WiFi users and trigger VM creation.
+
+4.1 Install CloudStack API Tools
+Install Python API tools for CloudStack:
+
+pip install cs
+4.2 Create a Python Script
+This script:
+
+Checks how many students are connected to WiFi.
+If the number increases, creates a new VM.
+If a student disconnects, destroys the VM.
+import requests
+
+CLOUDSTACK_URL = "http://192.168.1.100:8080/client/api"
+API_KEY = "your_api_key"
+SECRET_KEY = "your_secret_key"
+
+def get_wifi_users():
+    """ Check the number of students connected to WiFi. """
+    connected_users = 0
+    with open('/var/lib/dhcp/dhcpd.leases', 'r') as f:
+        connected_users = len(f.readlines())  # Count active leases
+    return connected_users
+
+def create_vm():
+    """ Create a new VM in CloudStack. """
+    params = {
+        'command': 'deployVirtualMachine',
+        'serviceofferingid': 'your_service_offering_id',
+        'templateid': 'your_template_id',
+        'zoneid': 'your_zone_id',
+        'apikey': API_KEY
+    }
+    response = requests.get(CLOUDSTACK_URL, params=params)
+    print("New VM created:", response.json())
+
+def delete_vm(vm_id):
+    """ Destroy a VM in CloudStack. """
+    params = {
+        'command': 'destroyVirtualMachine',
+        'id': vm_id,
+        'apikey': API_KEY
+    }
+    response = requests.get(CLOUDSTACK_URL, params=params)
+    print("VM deleted:", response.json())
+
+# Run scaling logic
+current_students = get_wifi_users()
+if current_students > 0:
+    create_vm()
+elif current_students == 0:
+    delete_vm("your_vm_id")
+Set this script to run every 5 minutes using a cron job:
+crontab -e
+Add:
+
+*/5 * * * * python3 /path/to/your_script.py
+Now, CloudStack will automatically add or remove VMs as students connect and disconnect!
+
+Step 5: Students Connect to Their VMs
+Each student will receive a VM IP address.
+They can RDP/SSH into the VM from their laptop/tablet.
+They will have pre-installed software (MATLAB, etc.).

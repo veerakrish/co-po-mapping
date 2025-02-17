@@ -1,0 +1,5 @@
+CO1: Apply Divide and Conquer algorithm technique to solve complex problems in logarithmic time. [K3]
+CO2: Apply Greedy method to solve Optimization problems. [K3]
+CO3: Design and implement Dynamic Programming solutions for complex computational problems. [K4]
+CO4: Analyze and implement Graph algorithms for real-world network problems. [K4]
+CO5: Develop efficient solutions using advanced data structures and algorithmic techniques. [K5]

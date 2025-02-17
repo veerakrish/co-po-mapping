@@ -1,0 +1,4 @@
+PSOs
+A graduate of the Computer Science and Engineering Programme will be able to::
+1. PSO1:Use Mathematical Abstractions and Algorithmic Design along with Open Source Programming tools to solve complexities involved in Programming. [K3]
+2. PSO2:Use Professional Engineering practices and strategies for development and maintenance of software. [K3]
